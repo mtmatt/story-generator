@@ -1,12 +1,14 @@
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { Command } from "commander";
+import { resolve } from "node:path";
 import { createStoryProject } from "../project/createProject.js";
 import { runQuickWorkflow } from "./actions.js";
 import { writeChapter } from "../pipeline/chapter.js";
 import { readProjectConfig } from "../project/store.js";
 import { createLlmProvider } from "../llm/factory.js";
 import { providerFactoryConfigFromProject } from "./actions.js";
+import { loadStyleSelection } from "../styles/loadStyles.js";
 import {
   readCharacters,
   readContinuity,
@@ -101,19 +103,26 @@ export function createProgram(): Command {
     .command("write")
     .requiredOption("--from <chapter>")
     .requiredOption("--to <chapter>")
+    .option("--styles-dir <path>", "Path to styles directory")
     .action(async (options) => {
-      const config = await readProjectConfig(process.cwd());
+      const root = process.cwd();
+      const config = await readProjectConfig(root);
+      const stylesDir = options.stylesDir
+        ? resolve(options.stylesDir)
+        : resolve(root, "..", "styles");
+      const styles = await loadStyleSelection(stylesDir, config.primaryStyle, config.assistStyle);
       const provider = createLlmProvider(providerFactoryConfigFromProject(config, process.env));
       for (let chapter = Number(options.from); chapter <= Number(options.to); chapter += 1) {
         await writeChapter({
-          root: process.cwd(),
+          root,
           chapter,
           provider,
           providerName: config.provider,
           model: config.model,
           temperature: config.temperature,
-          primaryStyle: config.primaryStyle,
-          assistStyle: config.assistStyle
+          primaryStyle: styles.primary.content,
+          assistStyle: styles.assist?.content,
+          chapterWordTarget: config.chapterWordTarget
         });
       }
     });

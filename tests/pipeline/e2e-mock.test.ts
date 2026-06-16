@@ -66,7 +66,8 @@ describe("mock story workflow", () => {
       model: "mock",
       temperature: 0.7,
       primaryStyle: styles.primary.content,
-      assistStyle: styles.assist?.content
+      assistStyle: styles.assist?.content,
+      chapterWordTarget: 2500
     });
 
     expect(await readFile(join(storyRoot, "chapters", "chapter-001.md"), "utf8")).toBe("第一章正文初稿");

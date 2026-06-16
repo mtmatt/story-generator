@@ -22,6 +22,7 @@ export interface WriteChapterInput {
   temperature: number;
   primaryStyle: string;
   assistStyle?: string;
+  chapterWordTarget: number;
 }
 
 export async function writeChapter(input: WriteChapterInput): Promise<void> {
@@ -41,11 +42,22 @@ export async function writeChapter(input: WriteChapterInput): Promise<void> {
   const storyState = await readStoryState(input.root);
   const system = composeStyleSystemPrompt(input);
 
+  const prevSlug = input.chapter > 1 ? chapterNumberSlug(input.chapter - 1) : null;
+  const prevChapterPath = prevSlug ? join(paths.chaptersDir, `${prevSlug}.md`) : null;
+  const previousChapter = prevChapterPath
+    ? await readFile(prevChapterPath, "utf8").catch(() => undefined)
+    : undefined;
+
   const draft = await input.provider.generateText({
     model: input.model,
     temperature: input.temperature,
     system,
-    prompt: chapterDraftPrompt(chapterOutline, JSON.stringify(storyState, null, 2))
+    prompt: chapterDraftPrompt(
+      chapterOutline,
+      JSON.stringify(storyState, null, 2),
+      input.chapterWordTarget,
+      previousChapter
+    )
   });
 
   await writeFile(draftVersionPath, draft.text, "utf8");

@@ -37,9 +37,17 @@ export const StyleCheckIssueSchema = z.object({
   suggestion: z.string().min(1)
 });
 
+const coerceIssue = z.preprocess(
+  (item) =>
+    typeof item === "string"
+      ? { type: "style", severity: "medium", evidence: item, suggestion: item }
+      : item,
+  StyleCheckIssueSchema
+);
+
 export const StyleCheckSchema = z.object({
   pass: z.boolean(),
-  issues: z.array(StyleCheckIssueSchema),
+  issues: z.array(coerceIssue),
   rewriteInstructions: z.array(z.string().min(1))
 });
 

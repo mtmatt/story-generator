@@ -1,4 +1,4 @@
-import { GenerateJsonRequest, GenerateTextRequest, GenerateTextResult, LlmProvider, stripJsonFences } from "./types.js";
+import { GenerateJsonRequest, GenerateTextRequest, GenerateTextResult, LlmProvider, parseJsonResponse } from "./types.js";
 
 export class OpenAiCompatibleProvider implements LlmProvider {
   public readonly name: string = "openai-compatible";
@@ -42,6 +42,6 @@ export class OpenAiCompatibleProvider implements LlmProvider {
       ...request,
       prompt: `${request.prompt}\n\nReturn only valid JSON.`
     });
-    return request.schema.parse(JSON.parse(stripJsonFences(result.text)));
+    return parseJsonResponse(result.text, request.schema);
   }
 }

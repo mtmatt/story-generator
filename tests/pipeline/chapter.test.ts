@@ -42,7 +42,8 @@ describe("writeChapter", () => {
       model: "mock",
       temperature: 0.7,
       primaryStyle: "主風格",
-      assistStyle: "輔助風格"
+      assistStyle: "輔助風格",
+      chapterWordTarget: 2500
     });
 
     expect(await readFile(join(root, "chapters", "chapter-001.md"), "utf8")).toBe("改寫正文");

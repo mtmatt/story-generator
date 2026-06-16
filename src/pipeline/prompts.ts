@@ -32,21 +32,37 @@ export function wholeBookOutlinePrompt(storyBible: string): string {
   ].join("\n\n");
 }
 
-export function chapterDraftPrompt(chapterOutline: string, currentState: string): string {
+export function chapterDraftPrompt(
+  chapterOutline: string,
+  currentState: string,
+  wordTarget: number,
+  previousChapter?: string
+): string {
   return [
-    "請根據章綱撰寫本章初稿。",
+    `請根據章綱撰寫本章初稿，目標字數約 ${wordTarget} 字，不得少於 ${Math.floor(wordTarget * 0.8)} 字。`,
     "要求：直接進事件、保留章末鉤子、對話使用全形引號、不要寫總結式大道理。",
+    previousChapter ? `上一章正文（接續用，確保人物狀態、場景、伏筆連貫）：\n${previousChapter}` : "",
     "章綱：",
     chapterOutline,
     "目前狀態：",
     currentState
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export function styleCheckPrompt(chapterText: string): string {
   return [
-    "請檢查本章是否符合主風格。只回傳 JSON。",
-    "JSON 欄位：pass:boolean, issues:array, rewriteInstructions:array。",
+    "請檢查本章是否符合主風格。只回傳 JSON，不要有任何其他文字或 markdown。",
+    `JSON 格式（嚴格遵守）：
+{
+  "pass": true,
+  "issues": [
+    { "type": "ai_tone", "severity": "high", "evidence": "引用原文片段", "suggestion": "具體修改建議" }
+  ],
+  "rewriteInstructions": ["改寫指令1"]
+}
+pass 為 true 時 issues 必須為空陣列。severity 只能是 "low"、"medium"、"high" 之一。`,
     "正文：",
     chapterText
   ].join("\n\n");
