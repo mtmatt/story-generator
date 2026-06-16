@@ -3,7 +3,17 @@ import { createStoryProject } from "../project/createProject.js";
 import { writeChapter } from "../pipeline/chapter.js";
 import { readProjectConfig } from "../project/store.js";
 import { createLlmProvider } from "../llm/factory.js";
-import { readCharacters, readContinuity, readFacts, readForeshadowing } from "../state/stateStore.js";
+import {
+  readCharacters,
+  readContinuity,
+  readFacts,
+  readForeshadowing,
+  writeCharacters,
+  writeFacts,
+  writeForeshadowing
+} from "../state/stateStore.js";
+import { CharacterSchema, FactSchema, ForeshadowingSchema } from "../domain/schemas.js";
+import { editJsonInEditor } from "../review/editor.js";
 import { VERSION } from "../version.js";
 
 export function createProgram(): Command {
@@ -81,9 +91,33 @@ export function createProgram(): Command {
   status.command("facts").action(async () => console.log(JSON.stringify(await readFacts(process.cwd()), null, 2)));
 
   const edit = program.command("edit").description("Edit structured story state.");
-  edit.command("character <id>").description("Edit one character.");
-  edit.command("foreshadowing <id>").description("Edit one foreshadowing item.");
-  edit.command("fact <id>").description("Edit one world fact.");
+  edit.command("character <id>").action(async (id) => {
+    const items = await readCharacters(process.cwd());
+    const index = items.findIndex((item) => item.id === id);
+    if (index === -1) {
+      throw new Error(`Character not found: ${id}`);
+    }
+    items[index] = await editJsonInEditor(items[index], CharacterSchema);
+    await writeCharacters(process.cwd(), items);
+  });
+  edit.command("foreshadowing <id>").action(async (id) => {
+    const items = await readForeshadowing(process.cwd());
+    const index = items.findIndex((item) => item.id === id);
+    if (index === -1) {
+      throw new Error(`Foreshadowing item not found: ${id}`);
+    }
+    items[index] = await editJsonInEditor(items[index], ForeshadowingSchema);
+    await writeForeshadowing(process.cwd(), items);
+  });
+  edit.command("fact <id>").action(async (id) => {
+    const items = await readFacts(process.cwd());
+    const index = items.findIndex((item) => item.id === id);
+    if (index === -1) {
+      throw new Error(`Fact not found: ${id}`);
+    }
+    items[index] = await editJsonInEditor(items[index], FactSchema);
+    await writeFacts(process.cwd(), items);
+  });
 
   return program;
 }
