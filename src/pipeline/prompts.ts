@@ -31,3 +31,34 @@ export function wholeBookOutlinePrompt(storyBible: string): string {
     storyBible
   ].join("\n\n");
 }
+
+export function chapterDraftPrompt(chapterOutline: string, currentState: string): string {
+  return [
+    "請根據章綱撰寫本章初稿。",
+    "要求：直接進事件、保留章末鉤子、對話使用全形引號、不要寫總結式大道理。",
+    "章綱：",
+    chapterOutline,
+    "目前狀態：",
+    currentState
+  ].join("\n\n");
+}
+
+export function styleCheckPrompt(chapterText: string): string {
+  return [
+    "請檢查本章是否符合主風格。只回傳 JSON。",
+    "JSON 欄位：pass:boolean, issues:array, rewriteInstructions:array。",
+    "正文：",
+    chapterText
+  ].join("\n\n");
+}
+
+export function rewritePrompt(chapterText: string, rewriteInstructions: string[]): string {
+  return [
+    "請依照改寫指令重寫本章。",
+    "保留劇情事實、角色狀態、章節目的和連貫性，只修風格、節奏、AI 味和章末鉤子。",
+    "改寫指令：",
+    rewriteInstructions.map((item) => `- ${item}`).join("\n"),
+    "原文：",
+    chapterText
+  ].join("\n\n");
+}
