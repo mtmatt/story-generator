@@ -6,6 +6,7 @@ import { runQuickWorkflow } from "./actions.js";
 import { writeChapter } from "../pipeline/chapter.js";
 import { readProjectConfig } from "../project/store.js";
 import { createLlmProvider } from "../llm/factory.js";
+import { providerFactoryConfigFromProject } from "./actions.js";
 import {
   readCharacters,
   readContinuity,
@@ -102,11 +103,7 @@ export function createProgram(): Command {
     .requiredOption("--to <chapter>")
     .action(async (options) => {
       const config = await readProjectConfig(process.cwd());
-      const provider = createLlmProvider({
-        provider: config.provider,
-        apiKey: process.env.OPENAI_API_KEY,
-        baseUrl: process.env.OPENAI_COMPATIBLE_BASE_URL
-      });
+      const provider = createLlmProvider(providerFactoryConfigFromProject(config, process.env));
       for (let chapter = Number(options.from); chapter <= Number(options.to); chapter += 1) {
         await writeChapter({
           root: process.cwd(),
