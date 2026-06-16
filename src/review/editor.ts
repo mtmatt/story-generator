@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, unlink, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,19 +8,23 @@ export async function editTextInEditor(initialText: string, editor = process.env
   const tempPath = join(tmpdir(), `story-weaver-edit-${process.pid}-${Date.now()}.md`);
   await writeFile(tempPath, initialText, "utf8");
 
-  await new Promise<void>((resolve, reject) => {
-    const child = spawn(editor, [tempPath], { stdio: "inherit" });
-    child.on("error", reject);
-    child.on("exit", (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Editor exited with code ${code}`));
-      }
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(editor, [tempPath], { stdio: "inherit" });
+      child.on("error", reject);
+      child.on("exit", (code, signal) => {
+        if (code === 0 || (code === null && signal === null)) {
+          resolve();
+        } else {
+          reject(new Error(`Editor exited with code ${code}`));
+        }
+      });
     });
-  });
 
-  return readFile(tempPath, "utf8");
+    return await readFile(tempPath, "utf8");
+  } finally {
+    await unlink(tempPath).catch(() => undefined);
+  }
 }
 
 export async function editJsonInEditor<T>(
