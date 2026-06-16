@@ -1,0 +1,3 @@
+[submodule "Humanizer-zh-TW"]
+	path = Humanizer-zh-TW
+	url = git@github.com:mtmatt/Humanizer-zh-TW.git
