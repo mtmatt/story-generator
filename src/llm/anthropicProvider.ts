@@ -1,4 +1,4 @@
-import { GenerateJsonRequest, GenerateTextRequest, GenerateTextResult, LlmProvider } from "./types.js";
+import { GenerateJsonRequest, GenerateTextRequest, GenerateTextResult, LlmProvider, stripJsonFences } from "./types.js";
 
 export class AnthropicProvider implements LlmProvider {
   public readonly name = "anthropic";
@@ -17,7 +17,7 @@ export class AnthropicProvider implements LlmProvider {
         model: request.model,
         max_tokens: 4096,
         temperature: request.temperature,
-        system: request.system,
+        ...(request.system ? { system: request.system } : {}),
         messages: [{ role: "user", content: request.prompt }]
       })
     });
@@ -39,6 +39,6 @@ export class AnthropicProvider implements LlmProvider {
       ...request,
       prompt: `${request.prompt}\n\nReturn only valid JSON.`
     });
-    return request.schema.parse(JSON.parse(result.text));
+    return request.schema.parse(JSON.parse(stripJsonFences(result.text)));
   }
 }

@@ -29,3 +29,16 @@ export interface ProviderFactoryConfig {
   baseUrl?: string;
   responses?: string[];
 }
+
+/**
+ * Strips leading/trailing markdown JSON code fences that LLMs sometimes add
+ * even when instructed not to. Handles both ```json ... ``` and ``` ... ```.
+ */
+export function stripJsonFences(text: string): string {
+  const trimmed = text.trim();
+  const fenceMatch = trimmed.match(/^```(?:json)?\n?([\s\S]*?)\n?```$/);
+  if (fenceMatch) {
+    return fenceMatch[1].trim();
+  }
+  return trimmed;
+}

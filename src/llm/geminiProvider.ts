@@ -1,4 +1,4 @@
-import { GenerateJsonRequest, GenerateTextRequest, GenerateTextResult, LlmProvider } from "./types.js";
+import { GenerateJsonRequest, GenerateTextRequest, GenerateTextResult, LlmProvider, stripJsonFences } from "./types.js";
 
 export class GeminiProvider implements LlmProvider {
   public readonly name = "gemini";
@@ -36,6 +36,6 @@ export class GeminiProvider implements LlmProvider {
       ...request,
       prompt: `${request.prompt}\n\nReturn only valid JSON.`
     });
-    return request.schema.parse(JSON.parse(result.text));
+    return request.schema.parse(JSON.parse(stripJsonFences(result.text)));
   }
 }
