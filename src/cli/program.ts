@@ -1,5 +1,8 @@
+import { createInterface } from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 import { Command } from "commander";
 import { createStoryProject } from "../project/createProject.js";
+import { runQuickWorkflow } from "./actions.js";
 import { writeChapter } from "../pipeline/chapter.js";
 import { readProjectConfig } from "../project/store.js";
 import { createLlmProvider } from "../llm/factory.js";
@@ -48,8 +51,44 @@ export function createProgram(): Command {
       });
     });
 
-  program.command("quick").description("Create a story from a short idea.");
-  program.command("guided").description("Create a story through interactive prompts.");
+  program
+    .command("quick")
+    .requiredOption("--style <style>")
+    .requiredOption("--idea <idea>")
+    .option("--name <name>")
+    .option("--assist-style <style>")
+    .option("--chapters <count>", "Chapter count", "30")
+    .option("--chapter-word-target <count>", "Target words per chapter", "2500")
+    .option("--provider <provider>")
+    .option("--model <model>")
+    .option("--temperature <number>")
+    .option("--auto")
+    .action(async (options) => {
+      const root = await runQuickWorkflow(options);
+      console.log(`Story project created at ${root}`);
+    });
+
+  program.command("guided").action(async () => {
+    const rl = createInterface({ input, output });
+    try {
+      const name = await rl.question("Story folder name: ");
+      const style = await rl.question("Primary style: ");
+      const assistStyle = await rl.question("Assist style (optional): ");
+      const idea = await rl.question("Story idea: ");
+      const chapters = await rl.question("Chapter count: ");
+      const root = await runQuickWorkflow({
+        name,
+        style,
+        assistStyle: assistStyle || undefined,
+        idea,
+        chapters,
+        auto: false
+      });
+      console.log(`Story project created at ${root}`);
+    } finally {
+      rl.close();
+    }
+  });
 
   const plan = program.command("plan").description("Generate planning artifacts.");
   plan.command("bible").description("Generate or regenerate the story bible.");

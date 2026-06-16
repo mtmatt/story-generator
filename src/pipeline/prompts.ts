@@ -62,3 +62,25 @@ export function rewritePrompt(chapterText: string, rewriteInstructions: string[]
     chapterText
   ].join("\n\n");
 }
+
+export function volumeOutlinesPrompt(storyBible: string, wholeBookOutline: string): string {
+  return [
+    "請根據故事聖經與全書大綱產生分卷大綱，使用 Markdown。",
+    "第一版請產出第一卷，包含本卷目標、主要轉折、角色變化、伏筆安排。",
+    "故事聖經：",
+    storyBible,
+    "全書大綱：",
+    wholeBookOutline
+  ].join("\n\n");
+}
+
+export function chapterOutlinesPrompt(storyBible: string, wholeBookOutline: string): string {
+  return [
+    "請產生章綱 JSON。只回傳 JSON array。",
+    "每個元素欄位：chapter:number, title:string, outline:string。",
+    "故事聖經：",
+    storyBible,
+    "全書大綱：",
+    wholeBookOutline
+  ].join("\n\n");
+}
