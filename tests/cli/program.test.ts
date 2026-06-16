@@ -10,13 +10,11 @@ describe("createProgram", () => {
     expect(program.version()).toBe(VERSION);
   });
 
-  it("registers the scaffold commands", () => {
-    const program = createProgram();
+  it("registers MVP commands", () => {
+    const commandNames = createProgram().commands.map((command) => command.name());
 
-    expect(program.commands.map((command) => command.name())).toEqual([
-      "init",
-      "quick",
-      "guided"
-    ]);
+    expect(commandNames).toEqual(
+      expect.arrayContaining(["init", "quick", "guided", "plan", "write", "rewrite", "status", "edit"])
+    );
   });
 });
